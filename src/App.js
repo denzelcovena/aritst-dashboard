@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from './supabaseClient';
+import SocialGrowthChart from './SocialGrowthChart';
 import {
   LineChart, Line, BarChart, Bar, XAxis, YAxis,
   CartesianGrid, Tooltip, Legend, ResponsiveContainer
@@ -116,6 +117,20 @@ const CustomTooltip = ({ active, payload, label }) => {
     </div>
   );
 };
+const getPct = (curr, prev) => {
+  if (!prev || prev === 0) return null;
+  return Math.round(((curr - prev) / prev) * 100);
+};
+
+const Arrow = ({ curr, prev }) => {
+  const pct = getPct(curr, prev);
+  if (pct === null) return null;
+  return (
+    <span style={{ marginLeft: '6px', fontSize: '11px', color: pct >= 0 ? '#1baf7a' : '#e34948' }}>
+      {pct >= 0 ? '▲' : '▼'} {Math.abs(pct)}%
+    </span>
+  );
+};
   const latestStat = stats[stats.length - 1];
 
   return (
@@ -157,6 +172,35 @@ const CustomTooltip = ({ active, payload, label }) => {
               </div>
             </div>
           )}
+          {stats.length >= 2 && (() => {
+  const curr = stats[stats.length - 1];
+  const prev = stats[stats.length - 2];
+  const postPct = getPct(curr.total_posts, prev.total_posts);
+  const streamPct = getPct(curr.streams, prev.streams);
+  const listenerPct = getPct(curr.monthly_listeners, prev.monthly_listeners);
+  return (
+    <div style={{ ...styles.card, marginBottom: '28px' }}>
+      <p style={styles.sectionTitle}>Week over week</p>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '16px' }}>
+        {[
+  { label: 'Posts', pct: postPct, curr: curr.total_posts, prev: prev.total_posts },
+  { label: 'Streams', pct: streamPct, curr: curr.streams, prev: prev.streams },
+  { label: 'Monthly Listeners', pct: listenerPct, curr: curr.monthly_listeners, prev: prev.monthly_listeners },
+].map(({ label, pct, curr, prev }) => (
+  <div key={label} style={{ borderLeft: `2px solid ${pct >= 0 ? '#1baf7a' : '#e34948'}`, paddingLeft: '12px' }}>
+    <p style={{ margin: '0 0 4px', fontSize: '12px', color: '#666' }}>{label}</p>
+    <p style={{ margin: 0, fontSize: '22px', fontWeight: '500', color: pct >= 0 ? '#1baf7a' : '#e34948' }}>
+      {pct !== null ? `${pct >= 0 ? '+' : ''}${pct}%` : '—'}
+    </p>
+    <p style={{ margin: '4px 0 0', fontSize: '11px', color: '#555' }}>
+      {prev?.toLocaleString()} → {curr?.toLocaleString()}
+    </p>
+  </div>
+))}
+      </div>
+    </div>
+  );
+})()}
 
           {chartData.length > 1 && (
             <>
@@ -209,6 +253,10 @@ const CustomTooltip = ({ active, payload, label }) => {
                   </BarChart>
                 </ResponsiveContainer>
               </div>
+
+              <div style={{ ...styles.card, marginTop: '20px' }}>
+                <SocialGrowthChart />
+              </div>
             </>
           )}
 
@@ -228,17 +276,20 @@ const CustomTooltip = ({ active, payload, label }) => {
                   </tr>
                 </thead>
                 <tbody>
-                  {stats.map(s => (
-                    <tr key={s.id}>
-                      <td style={styles.td}>{s.week_of}</td>
-                      <td style={styles.td}>{s.monthly_listeners?.toLocaleString()}</td>
-                      <td style={styles.td}>{s.streams?.toLocaleString()}</td>
-                      <td style={styles.td}>{s.saves?.toLocaleString()}</td>
-                      <td style={styles.td}>{s.playlist_adds?.toLocaleString()}</td>
-                      <td style={styles.td}>{s.spotify_followers?.toLocaleString()}</td>
-                      <td style={styles.td}>{s.total_posts?.toLocaleString()}</td>
-                    </tr>
-                  ))}
+                  {stats.map((s, i) => {
+  const prev = stats[i - 1];
+  return (
+    <tr key={s.id}>
+      <td style={styles.td}>{s.week_of}</td>
+      <td style={styles.td}>{s.monthly_listeners?.toLocaleString()}<Arrow curr={s.monthly_listeners} prev={prev?.monthly_listeners} /></td>
+      <td style={styles.td}>{s.streams?.toLocaleString()}<Arrow curr={s.streams} prev={prev?.streams} /></td>
+      <td style={styles.td}>{s.saves?.toLocaleString()}<Arrow curr={s.saves} prev={prev?.saves} /></td>
+      <td style={styles.td}>{s.playlist_adds?.toLocaleString()}<Arrow curr={s.playlist_adds} prev={prev?.playlist_adds} /></td>
+      <td style={styles.td}>{s.spotify_followers?.toLocaleString()}<Arrow curr={s.spotify_followers} prev={prev?.spotify_followers} /></td>
+      <td style={styles.td}>{s.total_posts?.toLocaleString()}<Arrow curr={s.total_posts} prev={prev?.total_posts} /></td>
+    </tr>
+  );
+})}
                 </tbody>
               </table>
               {stats.length === 0 && <p style={{ color: '#666', fontSize: '14px', margin: '12px 0 0' }}>No data yet.</p>}
