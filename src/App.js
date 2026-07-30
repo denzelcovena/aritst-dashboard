@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from './supabaseClient';
 import SocialGrowthChart from './SocialGrowthChart';
+import TikTokStatsCard from './TikTokStatsCard';
 import {
   LineChart, Line, BarChart, Bar, XAxis, YAxis,
   CartesianGrid, Tooltip, Legend, ResponsiveContainer
@@ -172,6 +173,11 @@ const Arrow = ({ curr, prev }) => {
               </div>
             </div>
           )}
+
+          <div style={{ ...styles.section, marginTop: '-8px' }}>
+            <TikTokStatsCard />
+          </div>
+
           {stats.length >= 2 && (() => {
   const curr = stats[stats.length - 1];
   const prev = stats[stats.length - 2];
