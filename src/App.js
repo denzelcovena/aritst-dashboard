@@ -1,20 +1,30 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from './supabaseClient';
-import SocialGrowthChart from './SocialGrowthChart';
 import TikTokStatsCard from './TikTokStatsCard';
+import MonthlyListenersChart from './MonthlyListenersChart';
+import ListenersVsActivityChart from './ListenersVsActivityChart';
+import ConversionRateChart from './ConversionRateChart';
+import EngagementRateChart from './EngagementRateChart';
+import PostsCountBox from './PostsCountBox';
 import {
-  LineChart, Line, BarChart, Bar, XAxis, YAxis,
-  CartesianGrid, Tooltip, Legend, ResponsiveContainer
+  LineChart, Line, XAxis, YAxis,
+  CartesianGrid, Tooltip, ResponsiveContainer
 } from 'recharts';
+
+const BLUE = '#1c4fd6';
+const WHITE_MUTED = 'rgba(255,255,255,0.55)';
+const DIVIDER = 'rgba(255,255,255,0.15)';
+const YELLOW = '#ffcc33';
 
 function App() {
   const [stats, setStats] = useState([]);
   const [events, setEvents] = useState([]);
+  const [spotifyLatest, setSpotifyLatest] = useState(null);
+  const [prevSpotify, setPrevSpotify] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('dashboard');
   const [newStat, setNewStat] = useState({
-    week_of: '', monthly_listeners: '', streams: '',
-    saves: '', playlist_adds: '', spotify_followers: '', total_posts: ''
+    week_of: '', streams: '', saves: '', playlist_adds: ''
   });
   const [newEvent, setNewEvent] = useState({
     event_date: '', event_name: '', event_type: ''
@@ -26,20 +36,24 @@ function App() {
     setLoading(true);
     const { data: statsData } = await supabase.from('weekly_stats').select('*').order('week_of');
     const { data: eventsData } = await supabase.from('events').select('*').order('event_date');
+    const { data: spotifyData } = await supabase
+      .from('spotify_stats')
+      .select('monthly_listeners, followers, captured_date')
+      .order('captured_date', { ascending: false })
+      .limit(2);
     setStats(statsData || []);
     setEvents(eventsData || []);
+    setSpotifyLatest(spotifyData && spotifyData.length > 0 ? spotifyData[0] : null);
+    setPrevSpotify(spotifyData && spotifyData.length > 1 ? spotifyData[1] : null);
     setLoading(false);
   }
 
-async function addStat() {
+  async function addStat() {
     const cleanStat = {
       week_of: newStat.week_of,
-      monthly_listeners: parseInt(newStat.monthly_listeners) || null,
       streams: parseInt(newStat.streams) || null,
       saves: parseInt(newStat.saves) || null,
       playlist_adds: parseInt(newStat.playlist_adds) || null,
-      spotify_followers: parseInt(newStat.spotify_followers) || null,
-      total_posts: parseInt(newStat.total_posts) || null,
     };
     const { data, error } = await supabase.from('weekly_stats').insert([cleanStat]);
     if (error) {
@@ -48,10 +62,9 @@ async function addStat() {
     } else {
       console.log('Saved:', data);
     }
-    setNewStat({ week_of: '', monthly_listeners: '', streams: '', saves: '', playlist_adds: '', spotify_followers: '', total_posts: '' });
+    setNewStat({ week_of: '', streams: '', saves: '', playlist_adds: '' });
     fetchData();
   }
-
 
   async function addEvent() {
     await supabase.from('events').insert([newEvent]);
@@ -60,274 +73,211 @@ async function addStat() {
   }
 
   const chartData = stats.map(s => {
-  const weekEvents = events.filter(e => e.event_date >= s.week_of && e.event_date < (() => {
-    const d = new Date(s.week_of);
-    d.setDate(d.getDate() + 7);
-    return d.toISOString().split('T')[0];
-  })());
-  return {
-    week: s.week_of,
-    listeners: s.monthly_listeners,
-    streams: s.streams,
-    saves: s.saves,
-    posts: s.total_posts,
-    events: weekEvents,
-  };
-});
+    const weekEvents = events.filter(e => e.event_date >= s.week_of && e.event_date < (() => {
+      const d = new Date(s.week_of);
+      d.setDate(d.getDate() + 7);
+      return d.toISOString().split('T')[0];
+    })());
+    return {
+      week: s.week_of,
+      streams: s.streams,
+      saves: s.saves,
+      events: weekEvents,
+    };
+  });
 
   const styles = {
-    app: { fontFamily: "'Inter', sans-serif", maxWidth: '960px', margin: '0 auto', padding: '24px 20px', background: '#0b0b0b', minHeight: '100vh', color: '#fff' },
-    header: { marginBottom: '32px' },
-    title: { fontSize: '22px', fontWeight: '500', color: '#fff', margin: '0 0 4px 0' },
-    subtitle: { fontSize: '14px', color: '#888', margin: 0 },
-    tabs: { display: 'flex', gap: '8px', marginBottom: '28px' },
-    tab: (active) => ({ padding: '8px 16px', background: active ? '#fff' : 'transparent', color: active ? '#000' : '#888', border: '0.5px solid', borderColor: active ? '#fff' : '#333', borderRadius: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: '500' }),
-    section: { marginBottom: '40px' },
-    sectionTitle: { fontSize: '13px', fontWeight: '500', color: '#888', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '16px' },
-    card: { background: '#141414', border: '0.5px solid #222', borderRadius: '12px', padding: '20px' },
-    metricGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '12px', marginBottom: '28px' },
-    metricCard: { background: '#141414', border: '0.5px solid #222', borderRadius: '8px', padding: '16px' },
-    metricLabel: { fontSize: '12px', color: '#666', marginBottom: '6px' },
-    metricValue: { fontSize: '24px', fontWeight: '500', color: '#fff' },
-    table: { width: '100%', borderCollapse: 'collapse', fontSize: '13px' },
-    th: { padding: '10px 12px', textAlign: 'left', borderBottom: '0.5px solid #222', color: '#666', fontWeight: '500', fontSize: '12px' },
-    td: { padding: '10px 12px', borderBottom: '0.5px solid #1a1a1a', color: '#ccc' },
+    app: { fontFamily: "'Space Grotesk', sans-serif", maxWidth: '720px', margin: '0 auto', padding: '28px 20px 60px', background: BLUE, minHeight: '100vh', color: '#fff' },
+    header: { paddingBottom: '20px', marginBottom: '28px', borderBottom: `1px solid ${DIVIDER}` },
+    title: { fontSize: '15px', fontWeight: '700', color: '#fff', margin: 0, textTransform: 'uppercase', letterSpacing: '0.06em' },
+    tabs: { display: 'flex', gap: '18px', marginTop: '14px' },
+    tab: (active) => ({ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontSize: '12px', fontWeight: '700', letterSpacing: '0.04em', textTransform: 'uppercase', color: active ? '#fff' : WHITE_MUTED, borderBottom: active ? `2px solid ${YELLOW}` : '2px solid transparent', paddingBottom: '4px' }),
+    section: { paddingTop: '24px', paddingBottom: '24px', borderBottom: `1px solid ${DIVIDER}` },
+    sectionTitle: { fontSize: '11px', fontWeight: '700', color: WHITE_MUTED, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '14px' },
+    bigNumberLabel: { fontSize: '11px', color: WHITE_MUTED, margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: '700' },
+    bigNumberRow: { display: 'flex', alignItems: 'baseline', gap: '10px', flexWrap: 'wrap' },
+    bigNumberValue: { fontSize: '60px', fontWeight: '700', color: '#fff', margin: 0, lineHeight: 1 },
+    deltaText: (positive) => ({ color: YELLOW, fontSize: '18px', fontWeight: '700' }),
+    deltaSub: { color: WHITE_MUTED, fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em' },
+    pairGrid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginTop: '18px' },
+    pairLabel: { fontSize: '11px', color: WHITE_MUTED, margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: '700' },
+    pairValue: { fontSize: '32px', fontWeight: '700', color: '#fff', margin: 0 },
     formGroup: { marginBottom: '16px' },
-    label: { display: 'block', marginBottom: '6px', fontSize: '13px', color: '#888' },
-    input: { padding: '10px 12px', width: '100%', boxSizing: 'border-box', background: '#1a1a1a', border: '0.5px solid #333', borderRadius: '8px', color: '#fff', fontSize: '14px' },
-    button: { padding: '10px 20px', background: '#fff', color: '#000', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: '500' },
-    eventItem: { padding: '10px 0', borderBottom: '0.5px solid #1a1a1a', fontSize: '13px', color: '#ccc' },
+    label: { display: 'block', marginBottom: '6px', fontSize: '12px', color: WHITE_MUTED, fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em' },
+    input: { padding: '10px 12px', width: '100%', boxSizing: 'border-box', background: 'rgba(255,255,255,0.08)', border: `1px solid ${DIVIDER}`, borderRadius: '8px', color: '#fff', fontSize: '14px' },
+    button: { padding: '10px 20px', background: '#fff', color: BLUE, border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: '700' },
+    eventItem: { padding: '10px 0', borderBottom: `1px solid ${DIVIDER}`, fontSize: '13px', color: '#fff' },
   };
-const CustomTooltip = ({ active, payload, label }) => {
-  if (!active || !payload || !payload.length) return null;
-  const weekEvents = payload[0]?.payload?.events || [];
-  return (
-    <div style={{ background: '#1a1a1a', border: '0.5px solid #333', borderRadius: '8px', padding: '12px', fontSize: '13px', color: '#fff', maxWidth: '200px' }}>
-      <p style={{ margin: '0 0 6px', color: '#666', fontSize: '11px' }}>{label}</p>
-      {payload.map(p => (
-        <p key={p.dataKey} style={{ margin: '2px 0', color: p.color }}>{p.dataKey}: {p.value?.toLocaleString()}</p>
-      ))}
-      {weekEvents.length > 0 && (
-        <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '0.5px solid #333' }}>
-          <p style={{ margin: '0 0 4px', color: '#666', fontSize: '11px' }}>EVENTS</p>
-          {weekEvents.map(e => (
-            <p key={e.id} style={{ margin: '2px 0', color: '#eda100', fontSize: '12px' }}>• {e.event_name}</p>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-};
-const getPct = (curr, prev) => {
-  if (!prev || prev === 0) return null;
-  return Math.round(((curr - prev) / prev) * 100);
-};
 
-const Arrow = ({ curr, prev }) => {
-  const pct = getPct(curr, prev);
-  if (pct === null) return null;
-  return (
-    <span style={{ marginLeft: '6px', fontSize: '11px', color: pct >= 0 ? '#1baf7a' : '#e34948' }}>
-      {pct >= 0 ? '▲' : '▼'} {Math.abs(pct)}%
-    </span>
-  );
-};
+  const CustomTooltip = ({ active, payload, label }) => {
+    if (!active || !payload || !payload.length) return null;
+    const weekEvents = payload[0]?.payload?.events || [];
+    return (
+      <div style={{ background: '#fff', borderRadius: '8px', padding: '10px 14px', fontSize: '12px', color: BLUE, maxWidth: '200px' }}>
+        <p style={{ margin: '0 0 4px', color: '#6b83c9', fontSize: '10px' }}>{label}</p>
+        {payload.map(p => (
+          <p key={p.dataKey} style={{ margin: '2px 0', fontWeight: 700 }}>{p.dataKey}: {p.value?.toLocaleString()}</p>
+        ))}
+        {weekEvents.length > 0 && (
+          <div style={{ marginTop: '6px', paddingTop: '6px', borderTop: '1px solid #eee' }}>
+            {weekEvents.map(e => (
+              <p key={e.id} style={{ margin: '2px 0', color: '#b8860b', fontSize: '11px' }}>• {e.event_name}</p>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const getPct = (curr, prev) => {
+    if (!prev || prev === 0) return null;
+    return Math.round(((curr - prev) / prev) * 100);
+  };
+
   const latestStat = stats[stats.length - 1];
+  const listenerDelta = spotifyLatest && prevSpotify
+    ? spotifyLatest.monthly_listeners - prevSpotify.monthly_listeners
+    : null;
 
   return (
     <div style={styles.app}>
       <div style={styles.header}>
-        <h1 style={styles.title}>Denzel Covena</h1>
-        <p style={styles.subtitle}>Artist Analytics Dashboard</p>
+        <p style={styles.title}>Goodmorning, Denzel</p>
+        <div style={styles.tabs}>
+          {['dashboard', 'log stats', 'log event'].map(tab => (
+            <button key={tab} onClick={() => setActiveTab(tab)} style={styles.tab(activeTab === tab)}>
+              {tab}
+            </button>
+          ))}
+        </div>
       </div>
 
-      <div style={styles.tabs}>
-        {['dashboard', 'log stats', 'log event'].map(tab => (
-          <button key={tab} onClick={() => setActiveTab(tab)} style={styles.tab(activeTab === tab)}>
-            {tab.charAt(0).toUpperCase() + tab.slice(1)}
-          </button>
-        ))}
-      </div>
-
-      {loading && <p style={{ color: '#666' }}>Loading...</p>}
+      {loading && <p style={{ color: WHITE_MUTED }}>Loading...</p>}
 
       {activeTab === 'dashboard' && !loading && (
         <div>
-          {latestStat && (
-            <div style={styles.section}>
-              <p style={styles.sectionTitle}>Latest Week — {latestStat.week_of}</p>
-              <div style={styles.metricGrid}>
-                {[
-                  { label: 'Monthly Listeners', value: latestStat.monthly_listeners?.toLocaleString() },
-                  { label: 'Streams', value: latestStat.streams?.toLocaleString() },
-                  { label: 'Saves', value: latestStat.saves?.toLocaleString() },
-                  { label: 'Playlist Adds', value: latestStat.playlist_adds?.toLocaleString() },
-                  { label: 'Spotify Followers', value: latestStat.spotify_followers?.toLocaleString() },
-                  { label: 'Total Posts', value: latestStat.total_posts?.toLocaleString() },
-                ].map(m => (
-                  <div key={m.label} style={styles.metricCard}>
-                    <p style={styles.metricLabel}>{m.label}</p>
-                    <p style={styles.metricValue}>{m.value ?? '—'}</p>
-                  </div>
-                ))}
+          <div style={styles.section}>
+            <p style={styles.bigNumberLabel}>Monthly Listeners</p>
+            <div style={styles.bigNumberRow}>
+              <p style={styles.bigNumberValue}>{spotifyLatest?.monthly_listeners?.toLocaleString() ?? '—'}</p>
+              {listenerDelta !== null && (
+                <>
+                  <span style={styles.deltaText(listenerDelta >= 0)}>
+                    {listenerDelta >= 0 ? '+' : ''}{listenerDelta.toLocaleString()}
+                  </span>
+                  <span style={styles.deltaSub}>from yesterday</span>
+                </>
+              )}
+            </div>
+
+            <div style={styles.pairGrid}>
+              <div>
+                <p style={styles.pairLabel}>Streams</p>
+                <p style={styles.pairValue}>{latestStat?.streams?.toLocaleString() ?? '—'}</p>
+              </div>
+              <div>
+                <p style={styles.pairLabel}>Saves</p>
+                <p style={styles.pairValue}>{latestStat?.saves?.toLocaleString() ?? '—'}</p>
+              </div>
+              <div>
+                <p style={styles.pairLabel}>Playlist Adds</p>
+                <p style={styles.pairValue}>{latestStat?.playlist_adds?.toLocaleString() ?? '—'}</p>
+              </div>
+              <div>
+                <p style={styles.pairLabel}>Spotify Followers</p>
+                <p style={styles.pairValue}>{spotifyLatest?.followers?.toLocaleString() ?? '—'}</p>
               </div>
             </div>
-          )}
+          </div>
 
-          <div style={{ ...styles.section, marginTop: '-8px' }}>
+          <div style={styles.section}>
             <TikTokStatsCard />
           </div>
 
-          {stats.length >= 2 && (() => {
-  const curr = stats[stats.length - 1];
-  const prev = stats[stats.length - 2];
-  const postPct = getPct(curr.total_posts, prev.total_posts);
-  const streamPct = getPct(curr.streams, prev.streams);
-  const listenerPct = getPct(curr.monthly_listeners, prev.monthly_listeners);
-  return (
-    <div style={{ ...styles.card, marginBottom: '28px' }}>
-      <p style={styles.sectionTitle}>Week over week</p>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '16px' }}>
-        {[
-  { label: 'Posts', pct: postPct, curr: curr.total_posts, prev: prev.total_posts },
-  { label: 'Streams', pct: streamPct, curr: curr.streams, prev: prev.streams },
-  { label: 'Monthly Listeners', pct: listenerPct, curr: curr.monthly_listeners, prev: prev.monthly_listeners },
-].map(({ label, pct, curr, prev }) => (
-  <div key={label} style={{ borderLeft: `2px solid ${pct >= 0 ? '#1baf7a' : '#e34948'}`, paddingLeft: '12px' }}>
-    <p style={{ margin: '0 0 4px', fontSize: '12px', color: '#666' }}>{label}</p>
-    <p style={{ margin: 0, fontSize: '22px', fontWeight: '500', color: pct >= 0 ? '#1baf7a' : '#e34948' }}>
-      {pct !== null ? `${pct >= 0 ? '+' : ''}${pct}%` : '—'}
-    </p>
-    <p style={{ margin: '4px 0 0', fontSize: '11px', color: '#555' }}>
-      {prev?.toLocaleString()} → {curr?.toLocaleString()}
-    </p>
-  </div>
-))}
-      </div>
-    </div>
-  );
-})()}
-
-          {chartData.length > 1 && (
-            <>
-              <div style={{ ...styles.card, marginBottom: '20px' }}>
-                <p style={styles.sectionTitle}>Streams over time</p>
-                <ResponsiveContainer width="100%" height={200}>
-                  <LineChart data={chartData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#1e1e1e" />
-                    <XAxis dataKey="week" tick={{ fill: '#666', fontSize: 11 }} />
-                    <YAxis tick={{ fill: '#666', fontSize: 11 }} />
-<Tooltip content={<CustomTooltip />} />                    <Line type="monotone" dataKey="streams" stroke="#2a78d6" strokeWidth={2} dot={{ fill: '#2a78d6', r: 4 }} />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-
-              <div style={{ ...styles.card, marginBottom: '20px' }}>
-                <p style={styles.sectionTitle}>Monthly listeners over time</p>
-                <ResponsiveContainer width="100%" height={200}>
-                  <LineChart data={chartData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#1e1e1e" />
-                    <XAxis dataKey="week" tick={{ fill: '#666', fontSize: 11 }} />
-                    <YAxis tick={{ fill: '#666', fontSize: 11 }} />
-<Tooltip content={<CustomTooltip />} />                    <Line type="monotone" dataKey="listeners" stroke="#1baf7a" strokeWidth={2} dot={{ fill: '#1baf7a', r: 4 }} />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-
-              <div style={{ ...styles.card, marginBottom: '20px' }}>
-  <p style={styles.sectionTitle}>Streams vs posts</p>
-  <ResponsiveContainer width="100%" height={200}>
-    <BarChart data={chartData}>
-      <CartesianGrid strokeDasharray="3 3" stroke="#1e1e1e" />
-      <XAxis dataKey="week" tick={{ fill: '#666', fontSize: 11 }} />
-      <YAxis tick={{ fill: '#666', fontSize: 11 }} />
-<Tooltip content={<CustomTooltip />} />      <Legend wrapperStyle={{ color: '#666', fontSize: '12px' }} />
-      <Bar dataKey="streams" fill="#2a78d6" radius={[4, 4, 0, 0]} />
-      <Bar dataKey="posts" fill="#eda100" radius={[4, 4, 0, 0]} />
-    </BarChart>
-  </ResponsiveContainer>
-</div>
-
-              <div style={styles.card}>
-                <p style={styles.sectionTitle}>Posts per week</p>
-                <ResponsiveContainer width="100%" height={200}>
-                  <BarChart data={chartData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#1e1e1e" />
-                    <XAxis dataKey="week" tick={{ fill: '#666', fontSize: 11 }} />
-                    <YAxis tick={{ fill: '#666', fontSize: 11 }} />
-<Tooltip content={<CustomTooltip />} />                    <Bar dataKey="posts" fill="#eda100" radius={[4, 4, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-
-              <div style={{ ...styles.card, marginTop: '20px' }}>
-                <SocialGrowthChart />
-              </div>
-            </>
-          )}
-
-          {chartData.length <= 1 && (
-            <p style={{ color: '#666', fontSize: '14px' }}>Add at least 2 weeks of data to see charts.</p>
-          )}
-
-          <div style={{ ...styles.section, marginTop: '40px' }}>
-            <p style={styles.sectionTitle}>All weeks</p>
-            <div style={styles.card}>
-              <table style={styles.table}>
-                <thead>
-                  <tr>
-                    {['Week', 'Listeners', 'Streams', 'Saves', 'Playlist Adds', 'Followers', 'Posts'].map(h => (
-                      <th key={h} style={styles.th}>{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {stats.map((s, i) => {
-  const prev = stats[i - 1];
-  return (
-    <tr key={s.id}>
-      <td style={styles.td}>{s.week_of}</td>
-      <td style={styles.td}>{s.monthly_listeners?.toLocaleString()}<Arrow curr={s.monthly_listeners} prev={prev?.monthly_listeners} /></td>
-      <td style={styles.td}>{s.streams?.toLocaleString()}<Arrow curr={s.streams} prev={prev?.streams} /></td>
-      <td style={styles.td}>{s.saves?.toLocaleString()}<Arrow curr={s.saves} prev={prev?.saves} /></td>
-      <td style={styles.td}>{s.playlist_adds?.toLocaleString()}<Arrow curr={s.playlist_adds} prev={prev?.playlist_adds} /></td>
-      <td style={styles.td}>{s.spotify_followers?.toLocaleString()}<Arrow curr={s.spotify_followers} prev={prev?.spotify_followers} /></td>
-      <td style={styles.td}>{s.total_posts?.toLocaleString()}<Arrow curr={s.total_posts} prev={prev?.total_posts} /></td>
-    </tr>
-  );
-})}
-                </tbody>
-              </table>
-              {stats.length === 0 && <p style={{ color: '#666', fontSize: '14px', margin: '12px 0 0' }}>No data yet.</p>}
-            </div>
+          <div style={styles.section}>
+            <PostsCountBox />
           </div>
 
-          <div style={{ ...styles.section, marginTop: '40px' }}>
-            <p style={styles.sectionTitle}>Events</p>
-            <div style={styles.card}>
-              {events.length === 0 && <p style={{ color: '#666', fontSize: '14px' }}>No events logged yet.</p>}
-              {events.map(e => (
-                <div key={e.id} style={styles.eventItem}>
-                  <strong style={{ color: '#fff' }}>{e.event_date}</strong> — {e.event_name}
-                  <span style={{ color: '#555', marginLeft: '8px' }}>({e.event_type})</span>
+          {stats.length >= 2 && (() => {
+            const curr = stats[stats.length - 1];
+            const prev = stats[stats.length - 2];
+            const streamPct = getPct(curr.streams, prev.streams);
+            const savesPct = getPct(curr.saves, prev.saves);
+            return (
+              <div style={styles.section}>
+                <p style={styles.sectionTitle}>Week over week</p>
+                <div style={styles.pairGrid}>
+                  {[
+                    { label: 'Streams', pct: streamPct, curr: curr.streams, prev: prev.streams },
+                    { label: 'Saves', pct: savesPct, curr: curr.saves, prev: prev.saves },
+                  ].map(({ label, pct, curr, prev }) => (
+                    <div key={label}>
+                      <p style={styles.pairLabel}>{label}</p>
+                      <p style={{ ...styles.pairValue, color: pct >= 0 ? '#fff' : '#ff8f8f' }}>
+                        {pct !== null ? `${pct >= 0 ? '+' : ''}${pct}%` : '—'}
+                      </p>
+                      <p style={{ margin: '2px 0 0', fontSize: '11px', color: WHITE_MUTED }}>
+                        {prev?.toLocaleString()} → {curr?.toLocaleString()}
+                      </p>
+                    </div>
+                  ))}
                 </div>
-              ))}
+              </div>
+            );
+          })()}
+
+          {chartData.length > 1 && (
+            <div style={styles.section}>
+              <p style={styles.sectionTitle}>Streams over time</p>
+              <ResponsiveContainer width="100%" height={180}>
+                <LineChart data={chartData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+                  <XAxis dataKey="week" tick={{ fill: WHITE_MUTED, fontSize: 10 }} />
+                  <YAxis tick={{ fill: WHITE_MUTED, fontSize: 10 }} />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Line type="monotone" dataKey="streams" stroke="#fff" strokeWidth={1.5} dot={{ fill: '#fff', r: 3 }} />
+                </LineChart>
+              </ResponsiveContainer>
             </div>
+          )}
+
+          <div style={styles.section}>
+            <MonthlyListenersChart events={events} />
+          </div>
+
+          <div style={styles.section}>
+            <ListenersVsActivityChart events={events} />
+          </div>
+
+          <div style={styles.section}>
+            <ConversionRateChart events={events} />
+          </div>
+
+          <div style={styles.section}>
+            <EngagementRateChart events={events} />
+          </div>
+
+          <div style={styles.section}>
+            <p style={styles.sectionTitle}>Events</p>
+            {events.length === 0 && <p style={{ color: WHITE_MUTED, fontSize: '13px' }}>No events logged yet.</p>}
+            {events.map(e => (
+              <div key={e.id} style={styles.eventItem}>
+                <strong>{e.event_date}</strong> — {e.event_name}
+                <span style={{ color: WHITE_MUTED, marginLeft: '8px' }}>({e.event_type})</span>
+              </div>
+            ))}
           </div>
         </div>
       )}
 
       {activeTab === 'log stats' && (
-        <div style={styles.card}>
+        <div style={styles.section}>
           <p style={styles.sectionTitle}>Log weekly stats</p>
           {[
             { label: 'Week Of', key: 'week_of', type: 'date' },
-            { label: 'Monthly Listeners', key: 'monthly_listeners', type: 'number' },
             { label: 'Streams', key: 'streams', type: 'number' },
             { label: 'Saves', key: 'saves', type: 'number' },
             { label: 'Playlist Adds', key: 'playlist_adds', type: 'number' },
-            { label: 'Spotify Followers', key: 'spotify_followers', type: 'number' },
-            { label: 'Total Posts This Week', key: 'total_posts', type: 'number' },
           ].map(({ label, key, type }) => (
             <div key={key} style={styles.formGroup}>
               <label style={styles.label}>{label}</label>
@@ -341,7 +291,7 @@ const Arrow = ({ curr, prev }) => {
       )}
 
       {activeTab === 'log event' && (
-        <div style={styles.card}>
+        <div style={styles.section}>
           <p style={styles.sectionTitle}>Log event</p>
           {[
             { label: 'Date', key: 'event_date', type: 'date' },
