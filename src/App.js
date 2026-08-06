@@ -129,11 +129,6 @@ function App() {
     );
   };
 
-  const getPct = (curr, prev) => {
-    if (!prev || prev === 0) return null;
-    return Math.round(((curr - prev) / prev) * 100);
-  };
-
   const latestStat = stats[stats.length - 1];
   const listenerDelta = spotifyLatest && prevSpotify
     ? spotifyLatest.monthly_listeners - prevSpotify.monthly_listeners
@@ -197,34 +192,6 @@ function App() {
           <div style={styles.section}>
             <PostsCountBox />
           </div>
-
-          {stats.length >= 2 && (() => {
-            const curr = stats[stats.length - 1];
-            const prev = stats[stats.length - 2];
-            const streamPct = getPct(curr.streams, prev.streams);
-            const savesPct = getPct(curr.saves, prev.saves);
-            return (
-              <div style={styles.section}>
-                <p style={styles.sectionTitle}>Week over week</p>
-                <div style={styles.pairGrid}>
-                  {[
-                    { label: 'Streams', pct: streamPct, curr: curr.streams, prev: prev.streams },
-                    { label: 'Saves', pct: savesPct, curr: curr.saves, prev: prev.saves },
-                  ].map(({ label, pct, curr, prev }) => (
-                    <div key={label}>
-                      <p style={styles.pairLabel}>{label}</p>
-                      <p style={{ ...styles.pairValue, color: pct >= 0 ? '#fff' : '#ff8f8f' }}>
-                        {pct !== null ? `${pct >= 0 ? '+' : ''}${pct}%` : '—'}
-                      </p>
-                      <p style={{ margin: '2px 0 0', fontSize: '11px', color: WHITE_MUTED }}>
-                        {prev?.toLocaleString()} → {curr?.toLocaleString()}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            );
-          })()}
 
           {chartData.length > 1 && (
             <div style={styles.section}>
