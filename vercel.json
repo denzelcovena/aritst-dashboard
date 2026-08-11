@@ -3,6 +3,10 @@
     {
       "path": "/api/cron/sync-social-data",
       "schedule": "0 9 * * *"
+    },
+    {
+      "path": "/api/cron/sync-spotify-only",
+      "schedule": "0 4 * * *"
     }
   ]
 }
