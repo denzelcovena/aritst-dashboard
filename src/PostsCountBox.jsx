@@ -37,7 +37,7 @@ export default function PostsCountBox() {
     sectionTitle: { fontSize: "11px", fontWeight: "700", color: WHITE_MUTED, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "14px" },
     tabRow: { display: "flex", gap: "16px", marginBottom: "14px" },
     tabBtn: (active) => ({ background: "none", border: "none", padding: 0, cursor: "pointer", fontSize: "11px", fontWeight: "700", letterSpacing: "0.04em", textTransform: "uppercase", color: active ? "#fff" : WHITE_MUTED }),
-    bigNumber: { fontSize: "56px", fontWeight: "700", color: "#fff", margin: 0, lineHeight: 1 },
+bigNumber: { fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: "72px", fontWeight: "800", color: "#fff", margin: 0, lineHeight: 0.95, letterSpacing: "-1px" },
     subLabel: { fontSize: "11px", color: WHITE_MUTED, textTransform: "uppercase", letterSpacing: "0.06em", margin: "4px 0 0" },
   };
 

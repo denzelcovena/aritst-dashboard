@@ -38,7 +38,7 @@ export default function TikTokStatsCard() {
     tabBtn: (active) => ({ background: "none", border: "none", padding: 0, cursor: "pointer", fontSize: "11px", fontWeight: "700", letterSpacing: "0.04em", textTransform: "uppercase", color: active ? "#fff" : WHITE_MUTED }),
     pairGrid: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px", marginBottom: "20px" },
     pairLabel: { fontSize: "11px", color: WHITE_MUTED, margin: "0 0 4px", textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: "700" },
-    pairValue: { fontSize: "32px", fontWeight: "700", color: "#fff", margin: 0 },
+pairValue: { fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: "42px", fontWeight: "800", color: "#fff", margin: 0, letterSpacing: "-0.5px" },
     seeVideo: { fontSize: "11px", color: "#ffcc33", textDecoration: "none" },
   };
 

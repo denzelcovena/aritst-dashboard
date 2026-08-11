@@ -87,7 +87,7 @@ function App() {
   });
 
   const styles = {
-    app: { fontFamily: "'Space Grotesk', sans-serif", maxWidth: '720px', margin: '0 auto', padding: '28px 20px 60px', background: BLUE, minHeight: '100vh', color: '#fff' },
+app: { fontFamily: "'Space Grotesk', sans-serif", maxWidth: '1000px', margin: '0 auto', padding: '28px 20px 60px', background: BLUE, minHeight: '100vh', color: '#fff' },
     header: { paddingBottom: '20px', marginBottom: '28px', borderBottom: `1px solid ${DIVIDER}` },
     title: { fontSize: '15px', fontWeight: '700', color: '#fff', margin: 0, textTransform: 'uppercase', letterSpacing: '0.06em' },
     tabs: { display: 'flex', gap: '18px', marginTop: '14px' },
@@ -96,12 +96,12 @@ function App() {
     sectionTitle: { fontSize: '11px', fontWeight: '700', color: WHITE_MUTED, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '14px' },
     bigNumberLabel: { fontSize: '11px', color: WHITE_MUTED, margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: '700' },
     bigNumberRow: { display: 'flex', alignItems: 'baseline', gap: '10px', flexWrap: 'wrap' },
-    bigNumberValue: { fontSize: '60px', fontWeight: '700', color: '#fff', margin: 0, lineHeight: 1 },
+bigNumberValue: { fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: '144px', fontWeight: '800', color: '#fff', margin: 0, lineHeight: 0.9, letterSpacing: '-3px' },
     deltaText: (positive) => ({ color: YELLOW, fontSize: '18px', fontWeight: '700' }),
     deltaSub: { color: WHITE_MUTED, fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em' },
     pairGrid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginTop: '18px' },
     pairLabel: { fontSize: '11px', color: WHITE_MUTED, margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: '700' },
-    pairValue: { fontSize: '32px', fontWeight: '700', color: '#fff', margin: 0 },
+pairValue: { fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: '42px', fontWeight: '800', color: '#fff', margin: 0, letterSpacing: '-0.5px' },
     formGroup: { marginBottom: '16px' },
     label: { display: 'block', marginBottom: '6px', fontSize: '12px', color: WHITE_MUTED, fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em' },
     input: { padding: '10px 12px', width: '100%', boxSizing: 'border-box', background: 'rgba(255,255,255,0.08)', border: `1px solid ${DIVIDER}`, borderRadius: '8px', color: '#fff', fontSize: '14px' },
