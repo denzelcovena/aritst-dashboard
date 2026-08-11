@@ -87,7 +87,7 @@ function App() {
   });
 
   const styles = {
-app: { fontFamily: "'Space Grotesk', sans-serif", maxWidth: '1000px', margin: '0 auto', padding: '28px 20px 60px', background: BLUE, minHeight: '100vh', color: '#fff' },
+    app: { fontFamily: "'Space Grotesk', sans-serif", maxWidth: '1000px', margin: '0 auto', padding: '28px 20px 60px', background: BLUE, minHeight: '100vh', color: '#fff' },
     header: { paddingBottom: '20px', marginBottom: '28px', borderBottom: `1px solid ${DIVIDER}` },
     title: { fontSize: '15px', fontWeight: '700', color: '#fff', margin: 0, textTransform: 'uppercase', letterSpacing: '0.06em' },
     tabs: { display: 'flex', gap: '18px', marginTop: '14px' },
@@ -96,12 +96,12 @@ app: { fontFamily: "'Space Grotesk', sans-serif", maxWidth: '1000px', margin: '0
     sectionTitle: { fontSize: '11px', fontWeight: '700', color: WHITE_MUTED, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '14px' },
     bigNumberLabel: { fontSize: '11px', color: WHITE_MUTED, margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: '700' },
     bigNumberRow: { display: 'flex', alignItems: 'baseline', gap: '10px', flexWrap: 'wrap' },
-bigNumberValue: { fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: '144px', fontWeight: '800', color: '#fff', margin: 0, lineHeight: 0.9, letterSpacing: '-3px' },
+    bigNumberValue: { fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: '144px', fontWeight: '800', color: '#fff', margin: 0, lineHeight: 0.9, letterSpacing: '-3px' },
     deltaText: (positive) => ({ color: YELLOW, fontSize: '18px', fontWeight: '700' }),
     deltaSub: { color: WHITE_MUTED, fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em' },
-    pairGrid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginTop: '18px' },
+    pairGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '28px', marginTop: '18px' },
     pairLabel: { fontSize: '11px', color: WHITE_MUTED, margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: '700' },
-pairValue: { fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: '42px', fontWeight: '800', color: '#fff', margin: 0, letterSpacing: '-0.5px' },
+    pairValue: { fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: '42px', fontWeight: '800', color: '#fff', margin: 0, letterSpacing: '-0.5px' },
     formGroup: { marginBottom: '16px' },
     label: { display: 'block', marginBottom: '6px', fontSize: '12px', color: WHITE_MUTED, fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em' },
     input: { padding: '10px 12px', width: '100%', boxSizing: 'border-box', background: 'rgba(255,255,255,0.08)', border: `1px solid ${DIVIDER}`, borderRadius: '8px', color: '#fff', fontSize: '14px' },
@@ -139,7 +139,7 @@ pairValue: { fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontS
       <div style={styles.header}>
         <p style={styles.title}>Goodmorning, Denzel</p>
         <div style={styles.tabs}>
-          {['dashboard', 'log stats', 'log event'].map(tab => (
+          {['dashboard', 'log'].map(tab => (
             <button key={tab} onClick={() => setActiveTab(tab)} style={styles.tab(activeTab === tab)}>
               {tab}
             </button>
@@ -237,42 +237,42 @@ pairValue: { fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontS
         </div>
       )}
 
-      {activeTab === 'log stats' && (
-        <div style={styles.section}>
-          <p style={styles.sectionTitle}>Log weekly stats</p>
-          {[
-            { label: 'Week Of', key: 'week_of', type: 'date' },
-            { label: 'Streams', key: 'streams', type: 'number' },
-            { label: 'Saves', key: 'saves', type: 'number' },
-            { label: 'Playlist Adds', key: 'playlist_adds', type: 'number' },
-          ].map(({ label, key, type }) => (
-            <div key={key} style={styles.formGroup}>
-              <label style={styles.label}>{label}</label>
-              <input type={type} value={newStat[key]}
-                onChange={e => setNewStat({ ...newStat, [key]: e.target.value })}
-                style={styles.input} />
-            </div>
-          ))}
-          <button onClick={addStat} style={styles.button}>Save Week</button>
-        </div>
-      )}
+      {activeTab === 'log' && (
+        <div>
+          <div style={styles.section}>
+            <p style={styles.sectionTitle}>Log weekly stats</p>
+            {[
+              { label: 'Week Of', key: 'week_of', type: 'date' },
+              { label: 'Streams', key: 'streams', type: 'number' },
+              { label: 'Saves', key: 'saves', type: 'number' },
+              { label: 'Playlist Adds', key: 'playlist_adds', type: 'number' },
+            ].map(({ label, key, type }) => (
+              <div key={key} style={styles.formGroup}>
+                <label style={styles.label}>{label}</label>
+                <input type={type} value={newStat[key]}
+                  onChange={e => setNewStat({ ...newStat, [key]: e.target.value })}
+                  style={styles.input} />
+              </div>
+            ))}
+            <button onClick={addStat} style={styles.button}>Save Week</button>
+          </div>
 
-      {activeTab === 'log event' && (
-        <div style={styles.section}>
-          <p style={styles.sectionTitle}>Log event</p>
-          {[
-            { label: 'Date', key: 'event_date', type: 'date' },
-            { label: 'Event Name', key: 'event_name', type: 'text' },
-            { label: 'Type (release, show, playlist, collab, ad)', key: 'event_type', type: 'text' },
-          ].map(({ label, key, type }) => (
-            <div key={key} style={styles.formGroup}>
-              <label style={styles.label}>{label}</label>
-              <input type={type} value={newEvent[key]}
-                onChange={e => setNewEvent({ ...newEvent, [key]: e.target.value })}
-                style={styles.input} />
-            </div>
-          ))}
-          <button onClick={addEvent} style={styles.button}>Save Event</button>
+          <div style={styles.section}>
+            <p style={styles.sectionTitle}>Log event</p>
+            {[
+              { label: 'Date', key: 'event_date', type: 'date' },
+              { label: 'Event Name', key: 'event_name', type: 'text' },
+              { label: 'Type (release, show, playlist, collab, ad)', key: 'event_type', type: 'text' },
+            ].map(({ label, key, type }) => (
+              <div key={key} style={styles.formGroup}>
+                <label style={styles.label}>{label}</label>
+                <input type={type} value={newEvent[key]}
+                  onChange={e => setNewEvent({ ...newEvent, [key]: e.target.value })}
+                  style={styles.input} />
+              </div>
+            ))}
+            <button onClick={addEvent} style={styles.button}>Save Event</button>
+          </div>
         </div>
       )}
     </div>
