@@ -34,7 +34,7 @@ module.exports = async function handler(req, res) {
   // Run both Apify calls in parallel — they're independent, and this roughly
   // halves total wall-clock time, which matters given the maxDuration cap below.
   const [tiktokOutcome, spotifyOutcome] = await Promise.allSettled([
-    fetchTikTokPosts(TIKTOK_ACCOUNTS, 30).then(upsertTikTokPosts),
+    fetchTikTokPosts(TIKTOK_ACCOUNTS, 3).then(upsertTikTokPosts),
     fetchSpotifyArtistStats(SPOTIFY_ARTIST_URL).then(upsertSpotifyStats),
   ]);
 
