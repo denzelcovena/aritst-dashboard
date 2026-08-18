@@ -11,6 +11,18 @@ function startOfDaysAgo(days) {
   d.setDate(d.getDate() - days);
   return d;
 }
+function fmtDate(d) {
+  return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
+function dateRangeLabel(tabIndex) {
+  if (tabIndex === 0) {
+    return fmtDate(startOfDaysAgo(1));
+  }
+  const start = startOfDaysAgo(WINDOW_DAYS[tabIndex] - 1);
+  const end = startOfDaysAgo(0);
+  end.setDate(end.getDate() - 1);
+  return `${fmtDate(start)} – ${fmtDate(end)}`;
+}
 
 export default function TikTokStatsCard() {
   const [rows, setRows] = useState([]);
@@ -34,11 +46,12 @@ export default function TikTokStatsCard() {
 
   const styles = {
     sectionTitle: { fontSize: "11px", fontWeight: "700", color: WHITE_MUTED, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "14px" },
-    tabRow: { display: "flex", gap: "16px", marginBottom: "18px" },
+    tabRow: { display: "flex", gap: "16px", marginBottom: "6px" },
     tabBtn: (active) => ({ background: "none", border: "none", padding: 0, cursor: "pointer", fontSize: "11px", fontWeight: "700", letterSpacing: "0.04em", textTransform: "uppercase", color: active ? "#fff" : WHITE_MUTED }),
+    dateLabel: { fontSize: "11px", color: WHITE_MUTED, margin: "0 0 18px" },
     pairGrid: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px", marginBottom: "20px" },
     pairLabel: { fontSize: "11px", color: WHITE_MUTED, margin: "0 0 4px", textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: "700" },
-pairValue: { fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: "42px", fontWeight: "800", color: "#fff", margin: 0, letterSpacing: "-0.5px" },
+    pairValue: { fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: "42px", fontWeight: "800", color: "#fff", margin: 0, letterSpacing: "-0.5px" },
     seeVideo: { fontSize: "11px", color: "#ffcc33", textDecoration: "none" },
   };
 
@@ -69,6 +82,7 @@ pairValue: { fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontS
           <button key={label} style={styles.tabBtn(activeTab === i)} onClick={() => setActiveTab(i)}>{label}</button>
         ))}
       </div>
+      <p style={styles.dateLabel}>{dateRangeLabel(activeTab)}</p>
 
       {windowed.length === 0 ? (
         <p style={{ color: WHITE_MUTED, fontSize: "13px" }}>No posts in this window yet.</p>

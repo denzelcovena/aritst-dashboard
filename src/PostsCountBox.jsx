@@ -14,6 +14,18 @@ function startOfDaysAgo(days) {
 function dateKey(d) {
   return new Date(d).toISOString().split("T")[0];
 }
+function fmtDate(d) {
+  return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
+function dateRangeLabel(tabIndex) {
+  if (tabIndex === 0) {
+    return fmtDate(startOfDaysAgo(1));
+  }
+  const start = startOfDaysAgo(WINDOW_DAYS[tabIndex] - 1);
+  const end = startOfDaysAgo(0);
+  end.setDate(end.getDate() - 1);
+  return `${fmtDate(start)} – ${fmtDate(end)}`;
+}
 
 export default function PostsCountBox() {
   const [rows, setRows] = useState([]);
@@ -35,9 +47,10 @@ export default function PostsCountBox() {
 
   const styles = {
     sectionTitle: { fontSize: "11px", fontWeight: "700", color: WHITE_MUTED, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "14px" },
-    tabRow: { display: "flex", gap: "16px", marginBottom: "14px" },
+    tabRow: { display: "flex", gap: "16px", marginBottom: "6px" },
     tabBtn: (active) => ({ background: "none", border: "none", padding: 0, cursor: "pointer", fontSize: "11px", fontWeight: "700", letterSpacing: "0.04em", textTransform: "uppercase", color: active ? "#fff" : WHITE_MUTED }),
-bigNumber: { fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: "72px", fontWeight: "800", color: "#fff", margin: 0, lineHeight: 0.95, letterSpacing: "-1px" },
+    dateLabel: { fontSize: "11px", color: WHITE_MUTED, margin: "0 0 4px" },
+    bigNumber: { fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: "72px", fontWeight: "800", color: "#fff", margin: 0, lineHeight: 0.95, letterSpacing: "-1px" },
     subLabel: { fontSize: "11px", color: WHITE_MUTED, textTransform: "uppercase", letterSpacing: "0.06em", margin: "4px 0 0" },
   };
 
@@ -73,6 +86,7 @@ bigNumber: { fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontS
           <button key={label} style={styles.tabBtn(activeTab === i)} onClick={() => setActiveTab(i)}>{label}</button>
         ))}
       </div>
+      <p style={styles.dateLabel}>{dateRangeLabel(activeTab)}</p>
 
       <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", flexWrap: "wrap", gap: "16px" }}>
         <div>
