@@ -92,6 +92,9 @@ function App() {
     title: { fontSize: '15px', fontWeight: '700', color: '#fff', margin: 0, textTransform: 'uppercase', letterSpacing: '0.06em' },
     tabs: { display: 'flex', gap: '18px', marginTop: '14px' },
     tab: (active) => ({ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontSize: '12px', fontWeight: '700', letterSpacing: '0.04em', textTransform: 'uppercase', color: active ? '#fff' : WHITE_MUTED, borderBottom: active ? `2px solid ${YELLOW}` : '2px solid transparent', paddingBottom: '4px' }),
+    groupHeader: { fontSize: '13px', fontWeight: '700', color: '#fff', textTransform: 'uppercase', letterSpacing: '0.12em', marginTop: '40px', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '8px' },
+    groupHeaderFirst: { marginTop: '0' },
+    groupDot: { width: '6px', height: '6px', borderRadius: '50%', background: YELLOW, display: 'inline-block' },
     section: { paddingTop: '24px', paddingBottom: '24px', borderBottom: `1px solid ${DIVIDER}` },
     sectionTitle: { fontSize: '11px', fontWeight: '700', color: WHITE_MUTED, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '14px' },
     bigNumberLabel: { fontSize: '11px', color: WHITE_MUTED, margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: '700' },
@@ -151,6 +154,10 @@ function App() {
 
       {activeTab === 'dashboard' && !loading && (
         <div>
+          {/* ===== SPOTIFY (the outcome) ===== */}
+          <p style={{ ...styles.groupHeader, ...styles.groupHeaderFirst }}>
+            <span style={styles.groupDot}></span>Spotify
+          </p>
           <div style={styles.section}>
             <p style={styles.bigNumberLabel}>Monthly Listeners</p>
             <div style={styles.bigNumberRow}>
@@ -185,14 +192,6 @@ function App() {
             </div>
           </div>
 
-          <div style={styles.section}>
-            <TikTokStatsCard />
-          </div>
-
-          <div style={styles.section}>
-            <PostsCountBox />
-          </div>
-
           {chartData.length > 1 && (
             <div style={styles.section}>
               <p style={styles.sectionTitle}>Streams over time</p>
@@ -212,6 +211,18 @@ function App() {
             <MonthlyListenersChart events={events} />
           </div>
 
+          {/* ===== TIKTOK (the input) ===== */}
+          <p style={styles.groupHeader}><span style={styles.groupDot}></span>TikTok</p>
+          <div style={styles.section}>
+            <PostsCountBox />
+          </div>
+
+          <div style={styles.section}>
+            <TikTokStatsCard />
+          </div>
+
+          {/* ===== GROWTH & CORRELATION (the payoff) ===== */}
+          <p style={styles.groupHeader}><span style={styles.groupDot}></span>Growth & Correlation</p>
           <div style={styles.section}>
             <ListenersVsActivityChart events={events} />
           </div>
@@ -224,6 +235,8 @@ function App() {
             <EngagementRateChart events={events} />
           </div>
 
+          {/* ===== LOG (history) ===== */}
+          <p style={styles.groupHeader}><span style={styles.groupDot}></span>Log</p>
           <div style={styles.section}>
             <p style={styles.sectionTitle}>Events</p>
             {events.length === 0 && <p style={{ color: WHITE_MUTED, fontSize: '13px' }}>No events logged yet.</p>}

@@ -4,6 +4,7 @@ import { supabase } from "./supabaseClient";
 const TABS = ["Yesterday", "Last 7 days", "Last 30 days"];
 const WINDOW_DAYS = [1, 7, 30];
 const WHITE_MUTED = "rgba(255,255,255,0.55)";
+const PERIOD_PHRASE = ["yesterday", "the previous 7 days", "the previous 30 days"];
 
 function startOfDaysAgo(days) {
   const d = new Date();
@@ -18,9 +19,7 @@ function fmtDate(d) {
   return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 function dateRangeLabel(tabIndex) {
-  if (tabIndex === 0) {
-    return fmtDate(startOfDaysAgo(1));
-  }
+  if (tabIndex === 0) return fmtDate(startOfDaysAgo(1));
   const start = startOfDaysAgo(WINDOW_DAYS[tabIndex] - 1);
   const end = startOfDaysAgo(0);
   end.setDate(end.getDate() - 1);
@@ -49,7 +48,8 @@ export default function PostsCountBox() {
     sectionTitle: { fontSize: "11px", fontWeight: "700", color: WHITE_MUTED, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "14px" },
     tabRow: { display: "flex", gap: "16px", marginBottom: "6px" },
     tabBtn: (active) => ({ background: "none", border: "none", padding: 0, cursor: "pointer", fontSize: "11px", fontWeight: "700", letterSpacing: "0.04em", textTransform: "uppercase", color: active ? "#fff" : WHITE_MUTED }),
-    dateLabel: { fontSize: "11px", color: WHITE_MUTED, margin: "0 0 4px" },
+    dateLabel: { fontSize: "11px", color: WHITE_MUTED, margin: "0 0 14px" },
+    compareLine: { fontSize: "13px", color: "#fff", margin: "0 0 6px", lineHeight: 1.5 },
     bigNumber: { fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: "72px", fontWeight: "800", color: "#fff", margin: 0, lineHeight: 0.95, letterSpacing: "-1px" },
     subLabel: { fontSize: "11px", color: WHITE_MUTED, textTransform: "uppercase", letterSpacing: "0.06em", margin: "4px 0 0" },
   };
@@ -64,13 +64,26 @@ export default function PostsCountBox() {
     postsByDay[key] = (postsByDay[key] || 0) + 1;
   });
 
-  let count;
-  if (activeTab === 0) {
-    count = postsByDay[dateKey(startOfDaysAgo(1))] || 0;
-  } else {
-    const cutoff = startOfDaysAgo(WINDOW_DAYS[activeTab]);
-    count = Object.entries(postsByDay).reduce((sum, [date, c]) => (new Date(date) >= cutoff ? sum + c : sum), 0);
+  function countFor(tabIndex, offsetPeriods) {
+    const days = WINDOW_DAYS[tabIndex];
+    const end = startOfDaysAgo(days * offsetPeriods);
+    const start = startOfDaysAgo(days * (offsetPeriods + 1));
+    return Object.entries(postsByDay).reduce((sum, [date, c]) => {
+      const d = new Date(date);
+      return d >= start && d < end ? sum + c : sum;
+    }, 0);
   }
+
+  const count = countFor(activeTab, 0);
+  const prevCount = countFor(activeTab, 1);
+  const delta = count - prevCount;
+  const hasPrevData = Object.keys(postsByDay).some((date) => {
+    const days = WINDOW_DAYS[activeTab];
+    const end = startOfDaysAgo(days);
+    const start = startOfDaysAgo(days * 2);
+    const d = new Date(date);
+    return d >= start && d < end;
+  });
 
   const sparklineDays = [];
   for (let i = 13; i >= 0; i--) {
@@ -87,6 +100,14 @@ export default function PostsCountBox() {
         ))}
       </div>
       <p style={styles.dateLabel}>{dateRangeLabel(activeTab)}</p>
+
+      {hasPrevData && (
+        <p style={styles.compareLine}>
+          {delta === 0
+            ? `Same number of posts as ${PERIOD_PHRASE[activeTab]}.`
+            : `That's ${Math.abs(delta)} ${delta > 0 ? "more" : "fewer"} post${Math.abs(delta) === 1 ? "" : "s"} than ${PERIOD_PHRASE[activeTab]}.`}
+        </p>
+      )}
 
       <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", flexWrap: "wrap", gap: "16px" }}>
         <div>
