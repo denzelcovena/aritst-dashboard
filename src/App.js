@@ -102,6 +102,7 @@ function App() {
     bigNumberValue: { fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: '144px', fontWeight: '800', color: '#fff', margin: 0, lineHeight: 0.9, letterSpacing: '-3px' },
     deltaText: (positive) => ({ color: YELLOW, fontSize: '18px', fontWeight: '700' }),
     deltaSub: { color: WHITE_MUTED, fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em' },
+    compareLine: { fontSize: '13px', color: '#fff', margin: '18px 0 0', lineHeight: 1.5 },
     pairGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '28px', marginTop: '18px' },
     pairLabel: { fontSize: '11px', color: WHITE_MUTED, margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: '700' },
     pairValue: { fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: '42px', fontWeight: '800', color: '#fff', margin: 0, letterSpacing: '-0.5px' },
@@ -133,9 +134,30 @@ function App() {
   };
 
   const latestStat = stats[stats.length - 1];
+  const prevWeekStat = stats[stats.length - 2];
   const listenerDelta = spotifyLatest && prevSpotify
     ? spotifyLatest.monthly_listeners - prevSpotify.monthly_listeners
     : null;
+
+  let weeklyCompareSentence = null;
+  if (latestStat && prevWeekStat) {
+    const parts = [];
+    const dStreams = (latestStat.streams ?? 0) - (prevWeekStat.streams ?? 0);
+    const dSaves = (latestStat.saves ?? 0) - (prevWeekStat.saves ?? 0);
+    const dAdds = (latestStat.playlist_adds ?? 0) - (prevWeekStat.playlist_adds ?? 0);
+    if (latestStat.streams != null && prevWeekStat.streams != null) {
+      parts.push(`${Math.abs(dStreams).toLocaleString()} ${dStreams >= 0 ? 'more' : 'fewer'} streams`);
+    }
+    if (latestStat.saves != null && prevWeekStat.saves != null) {
+      parts.push(`${Math.abs(dSaves).toLocaleString()} ${dSaves >= 0 ? 'more' : 'fewer'} saves`);
+    }
+    if (latestStat.playlist_adds != null && prevWeekStat.playlist_adds != null) {
+      parts.push(`${Math.abs(dAdds).toLocaleString()} ${dAdds >= 0 ? 'more' : 'fewer'} playlist adds`);
+    }
+    if (parts.length > 0) {
+      weeklyCompareSentence = `That's ${parts.join(', ')} than last week.`;
+    }
+  }
 
   return (
     <div style={styles.app}>
@@ -154,7 +176,6 @@ function App() {
 
       {activeTab === 'dashboard' && !loading && (
         <div>
-          {/* ===== SPOTIFY (the outcome) ===== */}
           <p style={{ ...styles.groupHeader, ...styles.groupHeaderFirst }}>
             <span style={styles.groupDot}></span>Spotify
           </p>
@@ -190,6 +211,7 @@ function App() {
                 <p style={styles.pairValue}>{spotifyLatest?.followers?.toLocaleString() ?? '—'}</p>
               </div>
             </div>
+            {weeklyCompareSentence && <p style={styles.compareLine}>{weeklyCompareSentence}</p>}
           </div>
 
           {chartData.length > 1 && (
@@ -211,7 +233,6 @@ function App() {
             <MonthlyListenersChart events={events} />
           </div>
 
-          {/* ===== TIKTOK (the input) ===== */}
           <p style={styles.groupHeader}><span style={styles.groupDot}></span>TikTok</p>
           <div style={styles.section}>
             <PostsCountBox />
@@ -221,7 +242,6 @@ function App() {
             <TikTokStatsCard />
           </div>
 
-          {/* ===== GROWTH & CORRELATION (the payoff) ===== */}
           <p style={styles.groupHeader}><span style={styles.groupDot}></span>Growth & Correlation</p>
           <div style={styles.section}>
             <ListenersVsActivityChart events={events} />
@@ -235,7 +255,6 @@ function App() {
             <EngagementRateChart events={events} />
           </div>
 
-          {/* ===== LOG (history) ===== */}
           <p style={styles.groupHeader}><span style={styles.groupDot}></span>Log</p>
           <div style={styles.section}>
             <p style={styles.sectionTitle}>Events</p>

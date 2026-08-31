@@ -46,6 +46,7 @@ export default function ConversionRateChart({ events = [] }) {
 
   const styles = {
     sectionTitle: { fontSize: "11px", fontWeight: "700", color: WHITE_MUTED, textTransform: "uppercase", letterSpacing: "0.1em" },
+    explainer: { fontSize: "11px", color: WHITE_MUTED, margin: "2px 0 0" },
     tabRow: { display: "flex", gap: "16px" },
     tabBtn: (active) => ({ background: "none", border: "none", padding: 0, cursor: "pointer", fontSize: "11px", fontWeight: "700", letterSpacing: "0.04em", textTransform: "uppercase", color: active ? "#fff" : WHITE_MUTED }),
   };
@@ -97,8 +98,11 @@ export default function ConversionRateChart({ events = [] }) {
 
   return (
     <div>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
-        <p style={{ ...styles.sectionTitle, marginBottom: 0 }}>Conversion Rate</p>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "16px" }}>
+        <div>
+          <p style={{ ...styles.sectionTitle, marginBottom: "2px" }}>Conversion Rate</p>
+          <p style={styles.explainer}>How much a day's views turned into new listeners the next day</p>
+        </div>
         <div style={styles.tabRow}>
           {TABS.map((label, i) => (
             <button key={label} style={styles.tabBtn(activeTab === i)} onClick={() => setActiveTab(i)}>{label}</button>
