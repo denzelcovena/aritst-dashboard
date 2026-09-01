@@ -10,6 +10,7 @@ const TIKTOK_ACCOUNTS = [
   "lupereallycares",
   "denzel.mursic",
   "denzelcovena",
+  "darlinsweetthanggg",
 ];
 
 const SPOTIFY_ARTIST_URL = "https://open.spotify.com/artist/5rUTMTQfmomgiE54kBHG0U";
